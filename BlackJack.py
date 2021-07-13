@@ -1,5 +1,4 @@
 
-from os import read
 import random
 import csv
 import db as wallet
@@ -21,65 +20,72 @@ def readFullDeck():
         print("Exiting program. Bye!")
         sys.exit()
 
-def firstTwoCards(playersHand, fullDeck):
-    print("Your card's:")
-    playersHandValue = getPlayersHandValue(playersHand) 
-    for _ in range(2):
-        NewestCard = []
-        cardNumber = random.randint(0, (len(fullDeck)-1))
-        
-        newSuit = fullDeck[cardNumber][0]
-        cardValue = int(fullDeck[cardNumber][1])
-        if (cardValue == 999):
-            if playersHandValue >= 11:
-                cardValue = 1
-            elif playersHandValue < 11:
-                cardValue = 11
-        
-        NewestCard.append(newSuit)
-        NewestCard.append(cardValue)
-        playersHand.append(NewestCard)  
-        fullDeck.pop(cardNumber)
-    i = 0 
-    for i in range(len(playersHand)):
-        print(playersHand[i][0])
-        i = i +1
-    playersHandValue = getPlayersHandValue(playersHand) 
-    print("Your points: ", playersHandValue)
+def playersTurn(playersHand, fullDeck):
+    while True:
+            print()
+            command = input("Hit/stand: ").lower()
+            if command == "hit":
+                print()
+                print("Your cards:")
+                playerGetsCard(playersHand, fullDeck)
+                showPlayersCards(playersHand)
+                if (getPlayersHandValue(playersHand)  > 21):
+                    break
+            elif command == "stand":
+                break
+            else:
+                print("Not a valid command. Please try again.\n")
 
-    
 
-def add(playersHand, fullDeck):
-    print("Your card's:")
-    playersHandValue = getPlayersHandValue(playersHand) 
+def getCards(fullDeck, playersHand):
     NewestCard = []
+    playersHandValue = getPlayersHandValue(playersHand) 
     cardNumber = random.randint(0, (len(fullDeck)-1))
-    
     newSuit = fullDeck[cardNumber][0]
     cardValue = int(fullDeck[cardNumber][1])
-
     if (cardValue == 999):
         if playersHandValue >= 11:
             cardValue = 1
         elif playersHandValue < 11:
             cardValue = 11
-    
+    NewestCard.append(newSuit)
+    NewestCard.append(cardValue)
+    playersHand.append(NewestCard)  
+   
+def dealersTurn(playersHand, dealersHand, fullDeck):
+    while True:
+            if (getPlayersHandValue(playersHand)  > 21):
+                break
+            elif (getdealersHandValue(dealersHand) <= 17):
+                dealerGetsCard(fullDeck, dealersHand)
+            else:
+                break
+
+def playerGetsCard(playersHand, fullDeck):
+    playersHandValue = getPlayersHandValue(playersHand) 
+    NewestCard = []
+    cardNumber = random.randint(0, (len(fullDeck)-1))
+    newSuit = fullDeck[cardNumber][0]
+    cardValue = int(fullDeck[cardNumber][1])
+    if (cardValue == 999):
+        if playersHandValue >= 11:
+            cardValue = 1
+        elif playersHandValue < 11:
+            cardValue = 11
     NewestCard.append(newSuit)
     NewestCard.append(cardValue)
     playersHand.append(NewestCard)
-    
+    fullDeck.pop(cardNumber)
+
+def showPlayersCards(playersHand):
     i = 0 
     for i in range(len(playersHand)):
         print(playersHand[i][0])
         i = i +1
-    playersHandValue = getPlayersHandValue(playersHand) 
-    print("Your points: ", playersHandValue)
-    fullDeck.pop(cardNumber)
-
 
 def dealerGetsCard(fullDeck, dealersHand):
     NewestCard = []
-    cardNumber = random.randint(0, len(fullDeck))
+    cardNumber = random.randint(0, (len(fullDeck)-1))
     newSuit = fullDeck[cardNumber][0]
     cardValue = int(fullDeck[cardNumber][1])
     if (cardValue == 999):
@@ -87,22 +93,18 @@ def dealerGetsCard(fullDeck, dealersHand):
             cardValue = 1
         elif (getdealersHandValue(dealersHand) < 11):
             cardValue = 11
-    
     NewestCard.append(newSuit)
     NewestCard.append(cardValue)
-    
     dealersHand.append(NewestCard)
-    
     fullDeck.pop(cardNumber)
     
 def winMoney(moneyInWallett, betAmount):
     winnings = moneyInWallett + (betAmount * 1.5)
     return round(winnings, 2)
 
-
 def loseMoney(moneyInWallett, betAmount):
     winnings = moneyInWallett - betAmount
-    return winnings
+    return round(winnings, 2)
 
 def getPlayersHandValue(playersHand):
     playersHandValue = 0
@@ -110,7 +112,7 @@ def getPlayersHandValue(playersHand):
     for i in range(len(playersHand)):
         amount = playersHand[i][1]
         playersHandValue = playersHandValue + amount
-        i = i + 1
+        i += 1
     return playersHandValue
 
 def getdealersHandValue(dealersHand):
@@ -119,23 +121,48 @@ def getdealersHandValue(dealersHand):
     for i in range(len(dealersHand)):
         amount = dealersHand[i][1]
         dealersHandValue = dealersHandValue + amount
-        i = i + 1
+        i += 1
     return dealersHandValue
+
+def showDealersHand(dealersHand):
+    i = 0 
+    for i in range(len(dealersHand)):
+        print(dealersHand[i][0])
+        i += 1
 
 def placeBet(moneyInWallett):
     while True:
         try:
-            while True:
-                bet = float(input("Bet amount: "))
-                if bet < 5 or bet > 1000:
-                    print("Place a bet between 5 and 1000")
-                elif bet > moneyInWallett:
-                    print("Bet should be less then the money in your wallet")
-                else:
-                    return bet
+            bet = float(input("Bet amount: "))
+            if bet < 5 or bet > 1000:
+                print("Place a bet between 5 and 1000")
+            elif bet > moneyInWallett:
+                print("Bet should be less then the money in your wallet")
+            else:
+                return bet
         except ValueError:
             print("Error, please enter a number.")
             continue
+
+def winningConditions(playerTotal, dealerTotal, moneyInWallett, betAmount):
+    if ( playerTotal > 21 and dealerTotal <= 21):
+            print("You bust, you loose")
+            winnings = loseMoney(moneyInWallett, betAmount)
+    elif(dealerTotal > playerTotal and dealerTotal <= 21):
+        print("You loose")
+        winnings = loseMoney(moneyInWallett, betAmount)
+    elif(dealerTotal < playerTotal and playerTotal < 22):
+        print("you win")
+        winnings = winMoney(moneyInWallett, betAmount)
+    elif(playerTotal < 22 and dealerTotal > 21):
+        print("you win")
+        winnings = winMoney(moneyInWallett, betAmount)
+    elif(dealerTotal == playerTotal):
+        print("Tie")
+        winnings = moneyInWallett
+    print("Money: ", winnings)
+    wallet.changeAmount(str(winnings))
+    print()
 
 def amountInWallet():
     moneyInWallett = wallet.openWallet()
@@ -167,8 +194,9 @@ def main():
     fullDeck = readFullDeck()
 
     again = "y"
-    while again.lower() == "y":
-    
+    while again == "y":
+        if len(fullDeck) < 5:
+            fullDeck = readFullDeck() 
         playersHand = []
         dealersHand = []
         moneyInWallett = amountInWallet()
@@ -176,75 +204,34 @@ def main():
         print()
         print("Dealer's show card: ")
         dealerGetsCard(fullDeck, dealersHand)
+        showDealersHand(dealersHand)
         print()
-        firstTwoCards(playersHand, fullDeck)
-        
+        print("Your cards:")
+        playerGetsCard(playersHand, fullDeck)
+        playerGetsCard(playersHand, fullDeck)
+        showPlayersCards(playersHand)
 
-        while True:
-            print()
-            command = input("Hit/stand: ")
-            
-            if command == "view":
-                print(playersHand)
-                print(playersHand[0][1])
-                print(playersHand[1][1])
-                print(getPlayersHandValue(playersHand) )
-                print(len(playersHand))
-            elif command == "hit":
-                print()
-                add(playersHand, fullDeck)
-                if (getPlayersHandValue(playersHand)  > 21):
-                    break
-                elif (len(fullDeck) < 5):
-                    fullDeck = readFullDeck()
-            elif command == "stand":
-                break
-            else:
-                print("Not a valid command. Please try again.\n")
+        playersTurn(playersHand, fullDeck)
+        
         print()
         print("Dealer's cards:")
-        while True:
-            if (getdealersHandValue(dealersHand) <= 17):
-                dealerGetsCard(fullDeck, dealersHand)
-            elif (len(fullDeck) < 5):
-                    fullDeck = readFullDeck()
-            else:
-                i = 0 
-                break
-        i = 0 
-        for i in range(len(dealersHand)):
-            print(dealersHand[i][0])
-            i = i +1
-
+        dealersTurn(playersHand, dealersHand, fullDeck)
+        showDealersHand(dealersHand)
 
         playerTotal = getPlayersHandValue(playersHand) 
         dealerTotal = getdealersHandValue(dealersHand)
         print()
-        print("Your points: ", playerTotal)
+        print("Your points:\t", playerTotal)
         print("Dealer's points: ", dealerTotal)
         print()
-        
-        if ( playerTotal > 21 and dealerTotal <= 21):
-            print("You bust, you loose")
-            winnings = loseMoney(moneyInWallett, betAmount)
-        elif(dealerTotal > playerTotal and dealerTotal <= 21):
-            print("You loose")
-            winnings = loseMoney(moneyInWallett, betAmount)
-        elif(dealerTotal < playerTotal and playerTotal < 22):
-            print("you win")
-            winnings = winMoney(moneyInWallett, betAmount)
-        elif(playerTotal < 22 and dealerTotal > 21):
-            print("you win")
-            winnings = winMoney(moneyInWallett, betAmount)
-        elif(dealerTotal > 21 and playerTotal > 21 or dealerTotal == playerTotal):
-            print("Tie")
-            winnings = moneyInWallett
-
-        print("Money: ", winnings)
-        wallet.changeAmount(str(winnings))
-        print()
-        again = input("Play again? (y/n): ")
-
+        winningConditions(playerTotal, dealerTotal, moneyInWallett, betAmount)
+        while True:
+            again = input("Play again? (y/n): ").lower()
+            print()
+            if again == "y" or again == "n":
+                break
+            else:
+                print("Invalid input. Please try again.")
     print()
     print("Bye!")
 
